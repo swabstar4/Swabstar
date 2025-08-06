@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ENG 102 Mock Exam</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+    .container { max-width: 800px; margin: auto; padding: 20px; background: white; border-radius: 10px; }
+    .hidden { display: none; }
+    .question { margin-bottom: 20px; }
+    .nav-buttons { margin-top: 20px; display: flex; justify-content: space-between; }
+    .navigation-panel { margin-top: 20px; }
+    .flagged { background-color: yellow; }
+    .timer { font-size: 1.2em; margin-bottom: 20px; color: red; }
+    .question-number { font-weight: bold; }
+    .login-form input { display: block; margin: 10px 0; padding: 10px; width: 100%; }
+    .results { font-weight: bold; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="loginPanel">
+    <h2>Login</h2>
+    <p>Enter any matric number and school ID to proceed.</p>
+    <form id="loginForm">
+      <input type="text" id="matric" placeholder="Matric Number" required />
+      <input type="text" id="schoolId" placeholder="School ID" required />
+      <button type="submit">Start Exam</button>
+    </form>
+  </div>
+
+  <div id="examPanel" class="hidden">
+    <div class="timer" id="timer">Time Left: 25:00</div>
+    <div id="questionContainer"></div>
+    <div class="nav-buttons">
+      <button onclick="prevQuestion()">Previous</button>
+      <button onclick="toggleFlag()">Flag for Review</button>
+      <button onclick="nextQuestion()">Next</button>
+      <button onclick="submitExam()">Submit</button>
+    </div>
+    <div class="navigation-panel" id="navPanel"></div>
+  </div>
+
+  <div id="resultPanel" class="hidden">
+    <h2>Exam Completed</h2>
+    <div class="results" id="results"></div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "What is the function of auxiliary verbs in English?", options: ["To show emotions", "To replace nouns", "To form tenses and moods", "To end sentences"], a: 2 },
+  { q: "Which verb is primarily used as an auxiliary to form continuous tenses?", options: ["Have", "Do", "Be", "Will"], a: 2 },
+  { q: "In the sentence \"He is taking the exam now,\" what role does \"is\" play?", options: ["Main verb", "Noun", "Auxiliary verb", "Adjective"], a: 2 },
+  { q: "Which form is used with \"does\" in a question for singular subjects?", options: ["Do", "Did", "Does", "Doing"], a: 2 },
+  { q: "True or False: \"Do\" is used with singular subjects.", options: ["True", "False"], a: 1 },
+  { q: "What does \"doesn’t\" stand for?", options: ["Does not", "Do not", "Did not", "Does has"], a: 0 },
+  { q: "Which verb is used for passive voice constructions?", options: ["Have", "Be", "Do", "Will"], a: 1 },
+  { q: "In the sentence \"The exam was taken yesterday,\" what is the tense?", options: ["Present", "Past continuous", "Past simple", "Future"], a: 2 },
+  { q: "Which of the following is an example of present simple?", options: ["She is running.", "She runs every day.", "She has run.", "She was running."], a: 1 },
+  { q: "Complete the sentence: \"They usually ______ her to the hospital.\"", options: ["Take", "Takes", "Took", "Taking"], a: 0 },
+  { q: "What does \"don’t\" mean?", options: ["Do not", "Does not", "Did not", "Doing not"], a: 0 },
+  { q: "Identify the correct form: \"Jude ___ love the girl.\"", options: ["doesn’t", "don’t", "didn’t", "does"], a: 0 },
+  { q: "Which auxiliary verb would you use to ask if someone does not like something?", options: ["Is", "Does", "Do", "Did"], a: 2 },
+  { q: "Which sentence correctly uses \"doesn't\"?", options: ["She doesn’t want to go.", "She don’t like it.", "He don’t know.", "They doesn’t eat."], a: 0 },
+  { q: "In informal writing, which contraction is typically preferred?", options: ["Do not", "Is not", "Doesn’t", "Was not"], a: 2 },
+  { q: "What is one reason to use contractions in writing?", options: ["To sound formal", "To save space and make writing more casual", "To confuse readers", "To add length"], a: 1 },
+  { q: "Complete this sentence: \"Always say and write ______.\"", options: ["Loudly", "Quickly", "Carefully", "Softly"], a: 2 },
+  { q: "What is an example of making a decision based on knowledge?", options: ["A quick decision", "An informed decision", "A sudden decision", "A reckless decision"], a: 1 },
+  { q: "Fill in the blank: \"Make an ______ decision after reading all the facts.\"", options: ["Emotional", "Informed", "Irrational", "Aggressive"], a: 1 },
+  { q: "What does it mean to be \"informed\" in terms of having knowledge?", options: ["To ignore", "To have knowledge or awareness", "To forget", "To lie"], a: 1 },
+  { q: "Which of the following is a meaning of \"informed\"?", options: ["Unaware", "Knowledgeable", "Careless", "Angry"], a: 1 },
+  { q: "True or False: Being informed means having been told about something.", options: ["True", "False"], a: 0 },
+  { q: "Provide an example of being informed about an event.", options: ["I forget the time.", "I was informed of the meeting yesterday.", "I didn’t go.", "I was tired."], a: 1 },
+  { q: "What is the context that \"informed\" usually relates to in a statement?", options: ["Feelings", "Knowledge sharing", "Anger", "Sleep"], a: 1 },
+  { q: "Which field might require someone to be informed regularly?", options: ["Art", "Medicine", "Music", "Sports"], a: 1 },
+  { q: "What structures do auxiliary verbs help to form in English sentences?", options: ["Questions and commands", "Nouns and verbs", "Objects", "Prepositions"], a: 0 },
+  { q: "Fill in the blank: \"The college ___ not admit bad students.\"", options: ["Do", "Doesn’t", "Did", "Do not"], a: 1 },
+  { q: "What verb form would you use in the negative for \"they\"?", options: ["Does", "Did", "Don’t", "Doesn’t"], a: 2 },
+  { q: "Identify the passive construction: \"The exam ___ being taken now.\"", options: ["Is", "Takes", "Was", "Take"], a: 0 },
+  { q: "Complete this statement: \"An informed opinion is based on ______.\"", options: ["Emotion", "Knowledge", "Anger", "Luck"], a: 1 }
+];
+
+let currentQuestion = 0;
+let answers = Array(questions.length).fill(null);
+let flagged = Array(questions.length).fill(false);
+let timer;
+let timeLeft = 1500;
+
+const loginForm = document.getElementById('loginForm');
+loginForm.addEventListener('submit', function (e) {
+  e.preventDefault();
+  document.getElementById('loginPanel').classList.add('hidden');
+  document.getElementById('examPanel').classList.remove('hidden');
+  loadQuestion();
+  generateNavButtons();
+  startTimer();
+});
+
+function startTimer() {
+  timer = setInterval(() => {
+    timeLeft--;
+    const min = Math.floor(timeLeft / 60);
+    const sec = timeLeft % 60;
+    document.getElementById('timer').textContent = `Time Left: ${min}:${sec.toString().padStart(2, '0')}`;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      submitExam();
+    }
+  }, 1000);
+}
+
+function loadQuestion() {
+  const q = questions[currentQuestion];
+  const container = document.getElementById('questionContainer');
+  container.innerHTML = `<div class="question">
+    <div class="question-number">Question ${currentQuestion + 1}</div>
+    <p>${q.q}</p>
+    ${q.options.map((opt, i) => `
+      <div><label><input type="radio" name="q${currentQuestion}" value="${i}" ${answers[currentQuestion] === i ? 'checked' : ''} onchange="saveAnswer(${i})"/> ${opt}</label></div>`).join('')}
+  </div>`;
+}
+
+function saveAnswer(i) {
+  answers[currentQuestion] = i;
+  updateNavButtons();
+}
+
+function nextQuestion() {
+  if (currentQuestion < questions.length - 1) {
+    currentQuestion++;
+    loadQuestion();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    loadQuestion();
+  }
+}
+
+function toggleFlag() {
+  flagged[currentQuestion] = !flagged[currentQuestion];
+  updateNavButtons();
+}
+
+function generateNavButtons() {
+  const panel = document.getElementById('navPanel');
+  panel.innerHTML = questions.map((_, i) => `<button id="nav${i}" onclick="goToQuestion(${i})">${i + 1}</button>`).join(' ');
+}
+
+function updateNavButtons() {
+  questions.forEach((_, i) => {
+    const btn = document.getElementById(`nav${i}`);
+    btn.className = '';
+    if (flagged[i]) btn.classList.add('flagged');
+    if (answers[i] !== null) btn.style.backgroundColor = '#cfc';
+  });
+}
+
+function goToQuestion(i) {
+  currentQuestion = i;
+  loadQuestion();
+}
+
+function submitExam() {
+  clearInterval(timer);
+  document.getElementById('examPanel').classList.add('hidden');
+  document.getElementById('resultPanel').classList.remove('hidden');
+  let correct = 0;
+  answers.forEach((a, i) => {
+    if (a === questions[i].a) correct++;
+  });
+  document.getElementById('results').innerHTML = `You scored ${correct} out of ${questions.length}`;
+}
+</script>
+</body>
+</html>
